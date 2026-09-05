@@ -1,0 +1,40 @@
+name: fotowiki-manifest
+
+# Läuft bei jedem Push, der Dateien im Bilderordner ändert. Liest EXIF
+# aus jedem Bild, aktualisiert manifest.json/tags.json und generiert eine
+# eigene HTML-Seite pro Bild -- und committet das automatisch zurück.
+# Ergebnis: Bild in wiki-fotos/bilder/ legen, pushen -- der Rest passiert
+# von selbst. Nur neue Tags/Querverweise in tags.json sind noch Handarbeit.
+
+on:
+  push:
+    paths:
+      - "wiki-fotos/bilder/**"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  build-fotowiki:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Abhaengigkeiten installieren
+        run: npm install
+
+      - name: Fotowiki bauen (EXIF lesen, Manifest + Einzelseiten generieren)
+        run: node scripts/build-fotowiki.js
+
+      - name: Aenderungen committen
+        run: |
+          git config user.name "fotowiki-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add wiki-fotos/data/manifest.json wiki-fotos/data/tags.json wiki-fotos/bild/
+          git diff --cached --quiet || git commit -m "fotowiki: Bilder verarbeitet [automatisch]"
+          git push
