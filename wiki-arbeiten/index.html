@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>Werkverzeichnis</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!--
+Konzept: Register für Arbeiten, Projekte, Shows — im Register eines
+Catalogue raisonné, nicht im Look eines Portfolios. Fortlaufende WV-Nummern,
+sachliche Felder (Titel, Jahr, Medium, Maße, Status solo/Duo, Ausstellung),
+keine Bildvorschau in der Liste, nur im Eintrag selbst. Schwarz auf
+gebrochenem Weiß, eine einzige Auszeichnungsschrift, enge Zeilen — Register-
+Ton, kein Erzählton.
+-->
+<style>
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    background: #f5f3ee;
+    color: #111;
+    font-family: "Source Serif Pro", Georgia, serif;
+  }
+  header { padding: 2.2rem 1.5rem 1rem; border-bottom: 1px solid #111; max-width: 720px; margin: 0 auto; }
+  header .pfad { font-family: "IBM Plex Mono", monospace; font-size: 0.7rem; color: #666; margin-bottom: 0.6rem; }
+  header .pfad a { color: #444; }
+  header h1 { font-size: 1.15rem; font-weight: 500; margin: 0; letter-spacing: 0.01em; }
+  main { max-width: 720px; margin: 0 auto; padding: 1rem 1.5rem 3rem; }
+  .eintrag {
+    display: grid;
+    grid-template-columns: 5.5rem 1fr;
+    gap: 0.4rem 1rem;
+    padding: 1rem 0;
+    border-bottom: 1px solid #ccc7ba;
+    text-decoration: none;
+    color: #111;
+  }
+  .eintrag .wv { font-family: "IBM Plex Mono", monospace; font-size: 0.72rem; color: #666; padding-top: 0.15rem; }
+  .eintrag .titel { font-size: 1rem; font-style: italic; }
+  .eintrag .felder { font-size: 0.78rem; color: #555; margin-top: 0.2rem; }
+  footer { max-width: 720px; margin: 0 auto; padding: 0 1.5rem 3rem; font-family: "IBM Plex Mono", monospace; font-size: 0.72rem; color: #666; }
+  footer a { color: #333; }
+</style>
+</head>
+<body>
+<header>
+  <div class="pfad"><a href="../">hub</a> / werkverzeichnis</div>
+  <h1>Werkverzeichnis — laufendes Register</h1>
+</header>
+<main>
+  <a class="eintrag" href="wv-2024-01.html">
+    <div class="wv">WV 2024/01</div>
+    <div>
+      <div class="titel">[PLATZHALTER Titel]</div>
+      <div class="felder">2024 · Installation, Duo · [PLATZHALTER Ausstellung]</div>
+    </div>
+  </a>
+  <a class="eintrag" href="wv-2024-02.html">
+    <div class="wv">WV 2024/02</div>
+    <div>
+      <div class="titel">[PLATZHALTER Titel]</div>
+      <div class="felder">2024 · Fotografie, solo · unausgestellt</div>
+    </div>
+  </a>
+  <a class="eintrag" href="wv-2023-07.html">
+    <div class="wv">WV 2023/07</div>
+    <div>
+      <div class="titel">[PLATZHALTER Titel]</div>
+      <div class="felder">2023 · Video, Duo · [PLATZHALTER Ausstellung]</div>
+    </div>
+  </a>
+  <div class="eintrag" style="opacity:0.5; cursor:default;">
+    <div class="wv">WV —</div>
+    <div>
+      <div class="titel">[PLATZHALTER — weitere Einträge folgen]</div>
+      <div class="felder">Register unvollständig</div>
+    </div>
+  </div>
+</main>
+<footer><a href="../">← zurück zum Hub</a></footer>
+</body>
+</html>

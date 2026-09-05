@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>Screenshots</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!--
+Konzept: Galerie, die den gesamten Bildschirm nutzt — kein Grid, kein
+Rahmen, ein Bild nach dem anderen. Navigation über Pfeiltasten links/rechts
+(Desktop) sowie Antipp-Zonen links/rechts (Touch). Zähler unten rechts,
+sonst keine Bedienelemente sichtbar. Reine Betrachtungssituation, wie ein
+Diaprojektor.
+-->
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
+  #buehne { position: relative; width: 100%; height: 100vh; }
+  .bild {
+    position: absolute; inset: 0;
+    display: none;
+    align-items: center; justify-content: center;
+    color: #555;
+    font-family: "IBM Plex Mono", "Courier New", monospace;
+    font-size: 0.85rem;
+    text-align: center;
+    background: repeating-linear-gradient(45deg, #0d0d0d 0px, #0d0d0d 14px, #050505 14px, #050505 28px);
+  }
+  .bild.aktiv { display: flex; }
+  .zone { position: absolute; top: 0; bottom: 0; width: 35%; cursor: pointer; z-index: 5; }
+  .zone.links { left: 0; }
+  .zone.rechts { right: 0; }
+  #zaehler {
+    position: absolute; bottom: 1rem; right: 1.2rem;
+    color: #777; font-family: "IBM Plex Mono", monospace; font-size: 0.75rem;
+    z-index: 10; letter-spacing: 0.05em;
+  }
+  #hinweis {
+    position: absolute; bottom: 1rem; left: 1.2rem;
+    color: #444; font-family: "IBM Plex Mono", monospace; font-size: 0.7rem;
+    z-index: 10;
+  }
+  #zurueck {
+    position: absolute; top: 1rem; left: 1.2rem;
+    color: #666; font-family: "IBM Plex Mono", monospace; font-size: 0.72rem;
+    text-decoration: none; z-index: 10;
+  }
+</style>
+</head>
+<body>
+<a href="../" id="zurueck">← hub</a>
+<div id="buehne">
+  <div class="bild aktiv">[PLATZHALTER SCREENSHOT 01]</div>
+  <div class="bild">[PLATZHALTER SCREENSHOT 02]</div>
+  <div class="bild">[PLATZHALTER SCREENSHOT 03]</div>
+  <div class="bild">[PLATZHALTER SCREENSHOT 04]</div>
+  <div class="bild">[PLATZHALTER SCREENSHOT 05]</div>
+  <div class="bild">[PLATZHALTER SCREENSHOT 06]</div>
+  <div class="bild">[PLATZHALTER SCREENSHOT 07]</div>
+  <div class="bild">[PLATZHALTER SCREENSHOT 08]</div>
+  <div class="zone links" aria-label="vorheriges Bild"></div>
+  <div class="zone rechts" aria-label="nächstes Bild"></div>
+  <div id="zaehler">01 / 08</div>
+  <div id="hinweis">← → zum Blättern</div>
+</div>
+<script>
+  var bilder = document.querySelectorAll('.bild');
+  var index = 0;
+  function zeige(i){
+    bilder[index].classList.remove('aktiv');
+    index = (i + bilder.length) % bilder.length;
+    bilder[index].classList.add('aktiv');
+    document.getElementById('zaehler').textContent =
+      String(index+1).padStart(2,'0') + ' / ' + String(bilder.length).padStart(2,'0');
+  }
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'ArrowRight') zeige(index+1);
+    if (e.key === 'ArrowLeft') zeige(index-1);
+  });
+  document.querySelector('.zone.links').addEventListener('click', function(){ zeige(index-1); });
+  document.querySelector('.zone.rechts').addEventListener('click', function(){ zeige(index+1); });
+</script>
+</body>
+</html>
