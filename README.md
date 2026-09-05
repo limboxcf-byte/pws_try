@@ -1,9 +1,25 @@
-# Rabbit-Hole Website -- Prototyp (v4)
+# Rabbit-Hole Website -- Prototyp (v5)
 
-Statisches Multi-Page-Setup, kein Build-Step bei Cloudflare selbst. Deploy:
-Repo mit Cloudflare Pages verbinden, Build-Command leer lassen,
-Output-Verzeichnis = `/`. Eine GitHub Action laeuft zusaetzlich im Repo
-(nicht bei Cloudflare) und generiert die Foto-Seiten automatisch.
+## Deployment (Cloudflare Workers Static Assets)
+
+Cloudflare deployt dieses Repo inzwischen standardmaessig als **Workers-
+Projekt mit statischen Assets** (nicht als klassisches "Pages"-Projekt),
+ueber den Befehl `npx wrangler deploy`. Zwei Dateien steuern das:
+
+- `wrangler.jsonc` -- Projektkonfiguration (Name, Assets-Verzeichnis).
+  Falls dein Cloudflare-Projekt anders heisst als `cl-pws`, den Namen hier
+  anpassen.
+- `.assetsignore` -- schliesst alles aus, was nicht zur Website gehoert
+  (node_modules, scripts/, .github/, package.json, ...) vom Upload aus.
+  **Das ist der Fix fuer den "Asset too large"-Fehler**: ohne diese Datei
+  laedt Wrangler den kompletten Repo-Ordner hoch, inklusive der beim
+  Deploy frisch installierten node_modules -- und darin steckt Wranglers
+  eigene ~150-MB-Binaerdatei (workerd), die Cloudflares 25-MB-Limit pro
+  Datei sprengt.
+
+Kein manueller Build-Command noetig -- Cloudflare erkennt das Projekt
+automatisch und fuehrt `bun install` + `npx wrangler deploy` selbst aus.
+
 
 ## Struktur
 - `/` -- Hub. Jede Karte im Stil ihrer Zielsektion.

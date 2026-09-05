@@ -1,0 +1,16 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  // Name aus dem Cloudflare-Build-Log übernommen. Falls dein Worker/Projekt
+  // in Cloudflare anders heißt, hier anpassen, damit kein zweites Projekt
+  // entsteht.
+  "name": "cl-pws",
+  "compatibility_date": "2026-09-05",
+  "assets": {
+    // "." = Repo-Root. Was davon NICHT hochgeladen werden soll, steht in
+    // .assetsignore (node_modules, scripts/, .github/, package.json, ...).
+    "directory": "."
+  },
+  "observability": {
+    "enabled": true
+  }
+}
