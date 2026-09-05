@@ -1,75 +1,103 @@
-# Rabbit-Hole Website -- Prototyp (v5)
+# Rabbit-Hole Website -- Prototyp (v6)
+
+## WICHTIG: so bringst du das jetzt zuverlaessig ins Repo
+
+Bitte NICHT einzelne Dateien nachtragen -- das hat beim letzten Mal zum
+Problem gefuehrt (das .github-Verzeichnis ist "versteckt" und wird von
+vielen Datei-Explorern beim Hochladen uebersprungen).
+
+**Am sichersten:** loesche den gesamten Inhalt deines Repos und ersetze
+ihn komplett durch den Inhalt dieses Zips -- entweder per `git` auf der
+Kommandozeile, per GitHub Desktop, oder indem du in deinem Datei-Explorer
+vorher "versteckte Dateien anzeigen" aktivierst, bevor du den entpackten
+Ordner per Drag & Drop in GitHub hochlaedst. Git selbst hat kein Problem
+mit versteckten Ordnern -- nur manche Explorer/Browser-Uploads blenden sie
+aus, wenn man sie nicht extra einschaltet.
+
+Nach dem Hochladen einmal pruefen (direkt auf GitHub nachsehen, nicht nur
+lokal):
+- `.github/workflows/fotowiki-manifest.yml` vorhanden?
+- `scripts/build-fotowiki.js` vorhanden?
+- `package.json` im Root vorhanden?
+- `.assetsignore` und `wrangler.jsonc` im Root vorhanden?
 
 ## Deployment (Cloudflare Workers Static Assets)
 
-Cloudflare deployt dieses Repo inzwischen standardmaessig als **Workers-
-Projekt mit statischen Assets** (nicht als klassisches "Pages"-Projekt),
-ueber den Befehl `npx wrangler deploy`. Zwei Dateien steuern das:
+Cloudflare deployt dieses Repo als Workers-Projekt mit statischen Assets
+(`npx wrangler deploy`). Zwei Dateien steuern das:
 
-- `wrangler.jsonc` -- Projektkonfiguration (Name, Assets-Verzeichnis).
-  Falls dein Cloudflare-Projekt anders heisst als `cl-pws`, den Namen hier
-  anpassen.
-- `.assetsignore` -- schliesst alles aus, was nicht zur Website gehoert
-  (node_modules, scripts/, .github/, package.json, ...) vom Upload aus.
-  **Das ist der Fix fuer den "Asset too large"-Fehler**: ohne diese Datei
-  laedt Wrangler den kompletten Repo-Ordner hoch, inklusive der beim
-  Deploy frisch installierten node_modules -- und darin steckt Wranglers
-  eigene ~150-MB-Binaerdatei (workerd), die Cloudflares 25-MB-Limit pro
-  Datei sprengt.
+- `wrangler.jsonc` -- Projektkonfiguration. Falls dein Cloudflare-Projekt
+  anders heisst, den `name` hier anpassen.
+- `.assetsignore` -- schliesst node_modules, scripts/, .github/,
+  package.json etc. vom Upload aus. Ohne diese Datei laedt Wrangler auch
+  seine eigene ~150-MB-Binaerdatei mit hoch und das Deployment schlaegt
+  mit "Asset too large" fehl.
 
 Kein manueller Build-Command noetig -- Cloudflare erkennt das Projekt
-automatisch und fuehrt `bun install` + `npx wrangler deploy` selbst aus.
-
+automatisch.
 
 ## Struktur
 - `/` -- Hub. Jede Karte im Stil ihrer Zielsektion.
-- `/wiki-fotos/` -- **automatisches** Camera-Roll-Wiki:
-  - `bilder/` -- hier JPEG/PNG-Dateien reinlegen, sonst nichts tun
-  - `bild/<slug>.html` -- **eine eigene, statische Seite pro Bild**,
-    automatisch generiert (Titel, og:image, EXIF-Tabelle, Tags,
-    Querverweise). Funktioniert ohne JavaScript, hat eine eigene
-    Linkvorschau beim Teilen.
-  - `data/manifest.json` -- fertige Metadaten pro Bild (Slug, EXIF, GPS),
-    von der Action beim Build aus den Dateien gelesen
-  - `data/tags.json` -- Tags/Querverweise pro Bild, **Handarbeit** (Kameras
-    liefern keine Kategorien); die Action legt fuer neue Bilder automatisch
-    einen leeren Stub an, du musst nur noch fuellen
-  - `index.html` -- Grid, liest nur noch das fertige Manifest, kein
-    Nachladen einzelner Bilder mehr noetig
-  - `karte.html` -- Leaflet/OSM-Karte, Koordinaten kommen ebenfalls
-    fertig aus dem Manifest; `?fokus=Dateiname` zentriert auf ein Bild
+- `/wiki-fotos/` -- automatisches Camera-Roll-Wiki:
+  - `bilder/` -- JPEG/PNG-Dateien reinlegen, sonst nichts tun
+  - `bild/<slug>.html` -- eigene, generierte Seite pro Bild (Titel,
+    og:image, EXIF-Tabelle). Tags/Querverweise werden dort **live editierbar**
+    (siehe unten).
+  - `data/manifest.json` -- EXIF-Metadaten pro Bild, von der Action erzeugt
+  - `data/tags.json` -- Tags/Querverweise, wird sowohl von der Action
+    (leere Stubs fuer neue Bilder) als auch direkt aus dem Browser heraus
+    (beim Bearbeiten) geschrieben
+  - `edit.js` -- die Bearbeiten-Funktion, siehe unten
+  - `index.html` -- Grid
+  - `karte.html` -- Leaflet/OSM-Karte mit Bild-Vorschau im Popup
 - `/wiki-arbeiten/`, `/notizen/`, `/library/`, `/screenshots/`,
-  `/ehrerbietungen/`, `/blocks/` -- wie zuvor, noch statisch/handgepflegt.
+  `/ehrerbietungen/`, `/blocks/` -- noch statisch/handgepflegt.
 
 ## Workflow fuer neue Fotos
-1. JPEG/PNG in `wiki-fotos/bilder/` legen.
-2. Committen und pushen.
-3. Die Action `.github/workflows/fotowiki-manifest.yml`:
-   - installiert die Node-Abhaengigkeit `exifr` (aus `package.json`)
-   - liest EXIF aus jedem Bild
-   - schreibt `manifest.json` und ergaenzt `tags.json` um neue Stubs
-   - generiert/aktualisiert `bild/<slug>.html` fuer jedes Bild
-   - committet alles automatisch zurueck
-4. Cloudflare Pages erkennt den neuen Commit und deployt erneut.
-5. Optional: in `tags.json` fuer das neue Bild Tags/Querverweise eintragen
-   (Dateiname als Schluessel, `verwandt` referenziert andere Dateinamen).
+1. JPEG/PNG in `wiki-fotos/bilder/` legen, committen, pushen.
+2. Die Action liest EXIF, aktualisiert `manifest.json`, legt fuer neue
+   Bilder einen leeren Tag-Stub an, generiert `bild/<slug>.html`.
+3. Cloudflare deployt automatisch neu.
 
-Voraussetzung: Die Action braucht Schreibrechte auf den Branch
-(Repo-Settings -> Actions -> General -> Workflow permissions ->
-"Read and write permissions").
+Voraussetzung: Repo-Settings -> Actions -> General -> Workflow permissions
+-> "Read and write permissions", sonst darf die Action nicht zurueckpushen.
+
+## Tags/Querverweise direkt auf der Seite bearbeiten
+
+Jede Bild-Seite (`bild/<slug>.html`) hat einen "[Edit]"-Link neben "Tags".
+Klick oeffnet ein Formular fuer Tags und verwandte Bilder (Dateinamen,
+kommagetrennt). "Speichern" committet die aktualisierte `tags.json` direkt
+über die GitHub-API ins Repo -- kein eigener Server noetig.
+
+Einmalig beim ersten Bearbeiten wird nach folgendem gefragt (wird danach
+im Browser gespeichert, `localStorage`, nur lokal, nirgendwo sonst):
+- GitHub-Benutzername/Organisation
+- Repo-Name
+- Branch (normalerweise `main`)
+- Ein **Personal Access Token** mit Schreibrecht auf dieses eine Repo
+
+### Token erstellen (empfohlen: fein granuliert, nur fuer dieses Repo)
+GitHub -> Settings -> Developer settings -> Personal access tokens ->
+Fine-grained tokens -> "Generate new token" -> Repository access auf genau
+dieses Repo beschraenken -> unter Permissions "Contents" auf
+"Read and write" setzen. Das Token kannst du jederzeit in GitHub wieder
+loeschen/widerrufen.
+
+**Sicherheitshinweis:** das Token liegt im `localStorage` des Browsers, in
+dem du es einmal eingibst. Auf einem geteilten Geraet solltest du es nach
+Gebrauch in den GitHub-Einstellungen widerrufen, oder ein Token mit
+moeglichst engem Geltungsbereich verwenden (nur dieses Repo, nur Contents).
+Nach dem Speichern dauert es i.d.R. unter einer Minute, bis Cloudflare die
+Aenderung live zeigt (eigener Redeploy durch den Commit ausgeloest).
 
 ## Lokal testen
 ```
 npm install
 node scripts/build-fotowiki.js
 ```
-Erzeugt/aktualisiert manifest.json, tags.json und die Einzelseiten aus dem
-aktuellen Inhalt von `wiki-fotos/bilder/`.
 
 ## Offene Punkte
 - `wiki-arbeiten/`, `notizen/`, `library/`, `screenshots/`,
   `ehrerbietungen/`, `blocks/` sind noch mit `[PLATZHALTER]` befuellt.
-- `karte.html` braucht beim Aufruf Internetzugriff fuer Leaflet (CDN) und
-  OSM-Kartenkacheln.
-- Kategorien/Querverweise in `tags.json` bleiben manuell -- bewusste
-  Grenze, keine technische Luecke: Kameras liefern keine Semantik.
+- `karte.html` und die Bild-Seiten brauchen Internetzugriff fuer Leaflet
+  (CDN) bzw. die GitHub-API.

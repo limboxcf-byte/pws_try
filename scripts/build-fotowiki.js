@@ -106,23 +106,9 @@ function renderSeite(eintrag, alleSlugs, tagsEintrag) {
     .map(([label, wert]) => `<tr><td>${label}</td><td>${wert ? escapeHtml(wert) : "—"}</td></tr>`)
     .join("") + geoZeile;
 
-  const tags = (tagsEintrag && tagsEintrag.tags) || [];
-  const verwandt = (tagsEintrag && tagsEintrag.verwandt) || [];
-
-  const tagsHtml = tags.length
-    ? tags.map((t) => `<span>${escapeHtml(t)}</span>`).join("")
-    : `<span class="leer">keine Tags hinterlegt</span>`;
-
-  const verwandtHtml = verwandt.length
-    ? verwandt
-        .map((v) => {
-          const zielSlug = alleSlugs[v];
-          return zielSlug
-            ? `<a href="${escapeHtml(zielSlug)}.html">→ ${escapeHtml(v)}</a>`
-            : `<span class="leer">→ ${escapeHtml(v)} (nicht im Bestand)</span>`;
-        })
-        .join("")
-    : `<span class="leer">keine Verknüpfung hinterlegt</span>`;
+  // Tags/Querverweise werden NICHT hier eingebacken -- die lädt edit.js zur
+  // Laufzeit aus data/tags.json, damit "Edit" auf der Seite funktioniert
+  // ohne dass jedes Mal neu gebaut werden muss.
 
   return `<!DOCTYPE html>
 <html lang="de">
@@ -150,7 +136,13 @@ function renderSeite(eintrag, alleSlugs, tagsEintrag) {
   .tags span { display: inline-block; border: 1px solid #3a3a34; color: #9a9a8e; padding: 0.15rem 0.5rem; margin: 0 0.4rem 0.4rem 0; font-size: 10.5px; }
   .verwandt a, .verwandt span { display: block; margin-bottom: 0.3rem; }
   .leer { color: #6b6b62; }
-  h2 { font-size: 11px; color: #6b6b62; text-transform: uppercase; letter-spacing: 0.06em; margin: 1.4rem 0 0.5rem; font-weight: normal; }
+  h2 { font-size: 11px; color: #6b6b62; text-transform: uppercase; letter-spacing: 0.06em; margin: 1.4rem 0 0.5rem; font-weight: normal; display: flex; justify-content: space-between; align-items: baseline; }
+  .fw-edit-link { color: #6ea36e; text-transform: none; letter-spacing: normal; font-size: 10.5px; text-decoration: none; }
+  .fw-edit-settings label, .fw-edit-form label { display: block; font-size: 10.5px; color: #9a9a8e; margin: 0.5rem 0 0.2rem; }
+  .fw-edit-settings input, .fw-edit-form input { background: #161614; border: 1px solid #3a3a34; color: #d6d6d0; padding: 0.3rem; font-family: inherit; font-size: 11px; }
+  .fw-edit-settings button, .fw-edit-form button { margin-top: 0.6rem; background: #1e2e1e; color: #9a9a8e; border: 1px solid #3a3a34; padding: 0.3rem 0.7rem; font-family: inherit; font-size: 10.5px; cursor: pointer; }
+  .fw-edit-hinweis { font-size: 10.5px; color: #6b6b62; max-width: 44ch; }
+  #fw-save-status, #fw-settings-status { font-size: 10.5px; color: #6ea36e; margin-left: 0.5rem; }
 </style>
 </head>
 <body>
@@ -158,9 +150,10 @@ function renderSeite(eintrag, alleSlugs, tagsEintrag) {
 <main>
   <div class="grossbild"><img src="${bildUrl}" alt="${escapeHtml(datei)}"></div>
   <table>${tabelle}</table>
-  <h2>Tags</h2><div class="tags">${tagsHtml}</div>
-  <h2>Verwandte Bilder</h2><div class="verwandt">${verwandtHtml}</div>
+  <div id="tags-bereich">lädt …</div>
 </main>
+<script>window.FOTOWIKI_DATEI = ${JSON.stringify(datei)};</script>
+<script src="../edit.js"></script>
 </body>
 </html>
 `;
