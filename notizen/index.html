@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>Gedichte / Notizen</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;1,9..144,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<!--
+Konzept: Gegenpol zu den technischen Sektionen (fotowiki, karte). Rein
+textbasiert, keine Bedienelemente. Gedichte in großer, warmer Display-Serife
+(Fraunces) gesetzt, Entwurfsnotizen daneben/darunter in Monospace wie
+Randbemerkungen auf einem Manuskript. Schwarzer Hintergrund, ein einziger
+Akzentton. Zeilenumbrüche der Gedichte sind fest gesetzt (pre-wrap), nicht
+fließend umbrochen — Form ist Teil des Texts.
+-->
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: #111; color: #e7e2d6; }
+  header { padding: 2rem 1.5rem 0.5rem; font-family: "IBM Plex Mono", monospace; font-size: 0.7rem; color: #71695a; max-width: 640px; margin: 0 auto; }
+  header a { color: #a89f8a; }
+  main { max-width: 640px; margin: 0 auto; padding: 1rem 1.5rem 5rem; }
+  .stueck { margin-bottom: 4.5rem; }
+  .stueck .datum { font-family: "IBM Plex Mono", monospace; font-size: 0.68rem; color: #71695a; margin-bottom: 0.6rem; }
+  .stueck h1 {
+    font-family: "Fraunces", Georgia, serif;
+    font-weight: 400;
+    font-size: 1.9rem;
+    margin: 0 0 1.1rem;
+    color: #f2ede0;
+  }
+  .vers {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.95rem;
+    line-height: 2;
+    white-space: pre-wrap;
+    color: #cfc8b8;
+  }
+  .rand {
+    font-family: "Fraunces", Georgia, serif;
+    font-style: italic;
+    font-size: 0.85rem;
+    color: #948a72;
+    border-left: 2px solid #3a352b;
+    padding-left: 0.9rem;
+    margin-top: 1.4rem;
+  }
+  .notizblock { margin-top: 5rem; padding-top: 2rem; border-top: 1px solid #2a261e; }
+  .notizblock h2 { font-family: "IBM Plex Mono", monospace; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: #71695a; margin-bottom: 1rem; }
+  .notiz { font-family: "Fraunces", Georgia, serif; font-size: 1.05rem; line-height: 1.75; color: #d8d2c2; margin-bottom: 1.6rem; }
+  footer { max-width: 640px; margin: 0 auto; padding: 0 1.5rem 3rem; font-family: "IBM Plex Mono", monospace; font-size: 0.72rem; color: #71695a; }
+  footer a { color: #a89f8a; }
+</style>
+</head>
+<body>
+<header><a href="../">hub</a> / gedichte, notizen</header>
+<main>
+
+  <div class="stueck">
+    <div class="datum">[PLATZHALTER DATUM]</div>
+    <h1>[PLATZHALTER TITEL]</h1>
+    <div class="vers">[PLATZHALTER — Zeile 1, Zeilenumbruch fest]
+[PLATZHALTER — Zeile 2]
+
+[PLATZHALTER — Strophe 2, Zeile 1]
+[PLATZHALTER — Strophe 2, Zeile 2]</div>
+    <div class="rand">[PLATZHALTER — Randnotiz oder Entstehungskontext]</div>
+  </div>
+
+  <div class="stueck">
+    <div class="datum">[PLATZHALTER DATUM]</div>
+    <h1>[PLATZHALTER TITEL]</h1>
+    <div class="vers">[PLATZHALTER — kürzeres Stück]
+[PLATZHALTER — zweite Zeile]</div>
+  </div>
+
+  <div class="notizblock">
+    <h2>Notizen (Prosa)</h2>
+    <div class="notiz">[PLATZHALTER] Ein Notat, das kein Gedicht werden wollte. Länger, ungeformter, mit Fließtext statt Zeilenbruch.</div>
+    <div class="notiz">[PLATZHALTER] Kürzerer Gedanke, festgehalten und nicht weiterverfolgt.</div>
+  </div>
+
+</main>
+<footer><a href="../">← zurück zum Hub</a></footer>
+</body>
+</html>
