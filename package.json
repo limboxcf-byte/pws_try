@@ -1,8 +1,0 @@
-{
-  "name": "rabbithole-fotowiki",
-  "private": true,
-  "description": "Build-Skript fuer die automatische Foto-Wiki-Sektion.",
-  "dependencies": {
-    "exifr": "^7.1.3"
-  }
-}
