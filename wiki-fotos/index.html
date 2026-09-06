@@ -1,15 +1,15 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>fotowiki/</title>
+<title>photo wiki /</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <!--
-Konzept: Automatisches Camera-Roll-Grid. Alle Metadaten (EXIF, Slug) stehen
-schon fertig in data/manifest.json -- geschrieben beim Build durch
-scripts/build-fotowiki.js, nicht im Browser berechnet. Jedes Bild verlinkt
-auf seine eigene, ebenfalls automatisch generierte Seite unter bild/<slug>.html.
-Tags/Querverweise kommen aus data/tags.json (Handarbeit).
+Concept: automatic camera-roll grid. All metadata (EXIF, slug) already
+sits ready-made in data/manifest.json -- written at build time by
+scripts/build-fotowiki.js, not computed in the browser. Every image links
+to its own, likewise auto-generated page under bild/<slug>.html.
+Tags/related images come from data/tags.json (editable on-page or by hand).
 -->
 <style>
   * { box-sizing: border-box; }
@@ -35,30 +35,31 @@ Tags/Querverweise kommen aus data/tags.json (Handarbeit).
 </head>
 <body>
 <header>
-  <div class="pfad"><a href="../">hub</a> / fotowiki / camera-roll</div>
+  <div class="pfad"><a href="../">home</a> / photo wiki / camera roll</div>
   <div class="pfad" id="stat2"></div>
 </header>
 <nav class="filter">
-  <a href="karte.html">→ kartenansicht</a>
+  <a href="karte.html">→ map view</a>
 </nav>
-<div class="stat" id="stat">lädt Manifest …</div>
+<div class="stat" id="stat">loading manifest …</div>
 <div class="grid" id="grid"></div>
 <div class="leer" id="leer" style="display:none">
-  Noch keine Bilder im Bestand. JPEG/PNG-Dateien in <code>wiki-fotos/bilder/</code>
-  ablegen und pushen -- die Action erzeugt Manifest und Einzelseiten automatisch.
+  No images yet. Drop JPEG/PNG files into <code>wiki-fotos/bilder/</code>
+  and push -- the Action generates the manifest and individual pages
+  automatically.
 </div>
-<footer><a href="../">← zurück zum Hub</a></footer>
+<footer><a href="../">← back to home</a></footer>
 
 <script>
-async function ladeJSON(pfad) {
+async function loadJSON(path) {
   try {
-    const r = await fetch(pfad, { cache: "no-store" });
+    const r = await fetch(path, { cache: "no-store" });
     if (!r.ok) return null;
     return await r.json();
   } catch (e) { return null; }
 }
 
-function formatKurzdatum(iso) {
+function formatShortDate(iso) {
   if (!iso) return null;
   const dt = new Date(iso);
   if (isNaN(dt)) return null;
@@ -67,26 +68,26 @@ function formatKurzdatum(iso) {
 }
 
 async function init() {
-  const manifest = await ladeJSON('data/manifest.json');
-  const eintraege = Array.isArray(manifest) ? manifest.slice() : [];
+  const manifest = await loadJSON('data/manifest.json');
+  const entries = Array.isArray(manifest) ? manifest.slice() : [];
 
-  document.getElementById('stat').textContent = eintraege.length + ' objekt(e) indiziert · sortiert nach aufnahmedatum';
-  document.getElementById('stat2').textContent = 'bestand: ' + eintraege.length;
+  document.getElementById('stat').textContent = entries.length + ' object(s) indexed · sorted by date taken';
+  document.getElementById('stat2').textContent = 'total: ' + entries.length;
 
-  if (eintraege.length === 0) {
+  if (entries.length === 0) {
     document.getElementById('leer').style.display = 'block';
     return;
   }
 
-  eintraege.sort((a, b) => {
-    if (a.datum && b.datum) return new Date(b.datum) - new Date(a.datum);
-    if (a.datum) return -1;
-    if (b.datum) return 1;
-    return a.datei.localeCompare(b.datei);
+  entries.sort((a, b) => {
+    if (a.date && b.date) return new Date(b.date) - new Date(a.date);
+    if (a.date) return -1;
+    if (b.date) return 1;
+    return a.file.localeCompare(b.file);
   });
 
   const grid = document.getElementById('grid');
-  for (const e of eintraege) {
+  for (const e of entries) {
     const a = document.createElement('a');
     a.className = 'cell';
     a.href = 'bild/' + e.slug + '.html';
@@ -94,16 +95,16 @@ async function init() {
     const thumb = document.createElement('div');
     thumb.className = 'thumb';
     const img = document.createElement('img');
-    img.src = 'bilder/' + encodeURIComponent(e.datei);
+    img.src = 'bilder/' + encodeURIComponent(e.file);
     img.loading = 'lazy';
-    img.alt = e.datei;
+    img.alt = e.file;
     thumb.appendChild(img);
 
     const meta = document.createElement('div');
     meta.className = 'meta';
-    const datum = formatKurzdatum(e.datum) || '—';
-    const geo = (e.lat && e.lon) ? '<span class="geo">geo ✓</span>' : 'kein geo';
-    meta.innerHTML = '<span class="id">' + e.datei + '</span><br>' + datum + (e.blende ? ' · ' + e.blende : '') + ' · ' + geo;
+    const date = formatShortDate(e.date) || '—';
+    const geo = (e.lat && e.lon) ? '<span class="geo">geo ✓</span>' : 'no geo';
+    meta.innerHTML = '<span class="id">' + e.file + '</span><br>' + date + (e.aperture ? ' · ' + e.aperture : '') + ' · ' + geo;
 
     a.appendChild(thumb);
     a.appendChild(meta);

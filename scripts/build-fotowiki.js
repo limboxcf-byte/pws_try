@@ -1,61 +1,67 @@
 // scripts/build-fotowiki.js
 //
-// Laeuft in der GitHub Action bei jedem Push, der wiki-fotos/bilder/
-// aendert. Macht drei Dinge:
-//   1. Liest EXIF (Kamera, Blende, ISO, Datum, GPS) direkt aus jeder
-//      Bilddatei -- beim Build, nicht im Browser.
-//   2. Schreibt wiki-fotos/data/manifest.json mit den fertigen Metadaten.
-//   3. Generiert fuer jedes Bild eine eigene, statische HTML-Seite unter
-//      wiki-fotos/bild/<slug>.html -- eigener <title>, eigenes og:image,
-//      funktioniert auch ganz ohne JavaScript.
+// Runs in the GitHub Action on every push that changes wiki-fotos/bilder/.
+// Does three things:
+//   1. Reads EXIF (camera, aperture, ISO, date, GPS) directly from each
+//      image file -- at build time, not in the browser.
+//   2. Writes wiki-fotos/data/manifest.json with the finished metadata.
+//   3. Generates a standalone HTML page per image at
+//      wiki-fotos/bild/<slug>.html -- own <title>, own og:image, works
+//      without JavaScript for the core content.
 //
-// Tags/Querverweise (data/tags.json) bleiben Handarbeit -- fuer neue
-// Bilder wird dort automatisch ein leerer Stub angelegt.
+// Tags/related-image references (data/tags.json) stay editable by hand
+// (or via the on-page Edit feature) -- new images get an empty stub
+// automatically.
 //
-// Aufruf: node scripts/build-fotowiki.js
+// Run: node scripts/build-fotowiki.js
 
 const fs = require("fs");
 const path = require("path");
 const exifr = require("exifr");
 
 const ROOT = path.join(__dirname, "..", "wiki-fotos");
-const BILDER_DIR = path.join(ROOT, "bilder");
-const SEITEN_DIR = path.join(ROOT, "bild");
+const IMAGES_DIR = path.join(ROOT, "bilder");
+const PAGES_DIR = path.join(ROOT, "bild");
 const MANIFEST_PATH = path.join(ROOT, "data", "manifest.json");
 const TAGS_PATH = path.join(ROOT, "data", "tags.json");
 
-const ERLAUBTE_ENDUNGEN = [".jpg", ".jpeg", ".png"];
+const ALLOWED_EXTENSIONS = [".jpg", ".jpeg", ".png"];
 
-function slugify(dateiname) {
-  const basis = path.parse(dateiname).name;
-  return basis
+// Placeholder licence -- change to whatever fits. Applied uniformly to
+// every image via the download button on its page.
+const LICENSE_NAME = "CC BY-NC-ND 4.0";
+const LICENSE_URL = "https://creativecommons.org/licenses/by-nc-nd/4.0/";
+
+function slugify(filename) {
+  const base = path.parse(filename).name;
+  return base
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "") || "bild";
+    .replace(/^-+|-+$/g, "") || "image";
 }
 
-function eindeutigeSlugs(dateien) {
-  const vergeben = new Map();
-  const ergebnis = {};
-  for (const datei of dateien) {
-    let slug = slugify(datei);
-    if (vergeben.has(slug)) {
-      const n = vergeben.get(slug) + 1;
-      vergeben.set(slug, n);
+function uniqueSlugs(files) {
+  const seen = new Map();
+  const result = {};
+  for (const file of files) {
+    let slug = slugify(file);
+    if (seen.has(slug)) {
+      const n = seen.get(slug) + 1;
+      seen.set(slug, n);
       slug = slug + "-" + n;
     } else {
-      vergeben.set(slug, 1);
+      seen.set(slug, 1);
     }
-    ergebnis[datei] = slug;
+    result[file] = slug;
   }
-  return ergebnis;
+  return result;
 }
 
-function formatDatum(iso) {
+function formatDate(iso) {
   if (!iso) return null;
   const dt = new Date(iso);
   if (isNaN(dt)) return null;
-  return dt.toLocaleString("de-DE");
+  return dt.toLocaleString("en-GB");
 }
 
 function escapeHtml(s) {
@@ -64,71 +70,82 @@ function escapeHtml(s) {
   }[c]));
 }
 
-async function leseExif(dateipfad) {
+async function readExif(filepath) {
   try {
-    const daten = await exifr.parse(dateipfad, { gps: true });
-    if (!daten) return {};
+    const data = await exifr.parse(filepath, { gps: true });
+    if (!data) return {};
     return {
-      datum: daten.DateTimeOriginal ? daten.DateTimeOriginal.toISOString() : null,
-      kamera: [daten.Make, daten.Model].filter(Boolean).join(" ") || null,
-      objektiv: daten.LensModel || null,
-      brennweite: daten.FocalLength ? daten.FocalLength + " mm" : null,
-      blende: daten.FNumber ? "f/" + daten.FNumber : null,
-      iso: daten.ISO || null,
-      belichtung: daten.ExposureTime ? "1/" + Math.round(1 / daten.ExposureTime) + "s" : null,
-      lat: typeof daten.latitude === "number" ? daten.latitude : null,
-      lon: typeof daten.longitude === "number" ? daten.longitude : null,
+      date: data.DateTimeOriginal ? data.DateTimeOriginal.toISOString() : null,
+      camera: [data.Make, data.Model].filter(Boolean).join(" ") || null,
+      lens: data.LensModel || null,
+      focalLength: data.FocalLength ? data.FocalLength + " mm" : null,
+      aperture: data.FNumber ? "f/" + data.FNumber : null,
+      iso: data.ISO || null,
+      shutter: data.ExposureTime ? "1/" + Math.round(1 / data.ExposureTime) + "s" : null,
+      lat: typeof data.latitude === "number" ? data.latitude : null,
+      lon: typeof data.longitude === "number" ? data.longitude : null,
     };
   } catch (e) {
     return {};
   }
 }
 
-function renderSeite(eintrag, alleSlugs, tagsEintrag) {
-  const { datei, slug, exif } = eintrag;
-  const bildUrl = "../bilder/" + encodeURIComponent(datei);
+function renderPage(entry) {
+  const { file, exif } = entry;
+  const imageUrl = "../bilder/" + encodeURIComponent(file);
 
-  const felder = [
-    ["Aufnahmedatum", formatDatum(exif.datum)],
-    ["Kamera", exif.kamera],
-    ["Objektiv", exif.objektiv],
-    ["Brennweite", exif.brennweite],
-    ["Blende", exif.blende],
+  const fields = [
+    ["Date taken", formatDate(exif.date)],
+    ["Camera", exif.camera],
+    ["Lens", exif.lens],
+    ["Focal length", exif.focalLength],
+    ["Aperture", exif.aperture],
     ["ISO", exif.iso],
-    ["Belichtungszeit", exif.belichtung],
+    ["Shutter speed", exif.shutter],
   ];
 
-  const geoZeile = (exif.lat && exif.lon)
-    ? `<tr><td>GPS</td><td>${exif.lat.toFixed(5)}, ${exif.lon.toFixed(5)} · <a href="../karte.html?fokus=${encodeURIComponent(datei)}">auf Karte zeigen</a></td></tr>`
-    : `<tr><td>GPS</td><td>— keine Geodaten</td></tr>`;
+  const gpsRow = (exif.lat && exif.lon)
+    ? `<tr><td>GPS</td><td>${exif.lat.toFixed(5)}, ${exif.lon.toFixed(5)} · <a href="../karte.html?fokus=${encodeURIComponent(file)}">show on map</a></td></tr>`
+    : `<tr><td>GPS</td><td>— no location data</td></tr>`;
 
-  const tabelle = felder
-    .map(([label, wert]) => `<tr><td>${label}</td><td>${wert ? escapeHtml(wert) : "—"}</td></tr>`)
-    .join("") + geoZeile;
+  const table = fields
+    .map(([label, value]) => `<tr><td>${label}</td><td>${value ? escapeHtml(value) : "—"}</td></tr>`)
+    .join("") + gpsRow;
 
-  // Tags/Querverweise werden NICHT hier eingebacken -- die lädt edit.js zur
-  // Laufzeit aus data/tags.json, damit "Edit" auf der Seite funktioniert
-  // ohne dass jedes Mal neu gebaut werden muss.
+  // Tags/related images are NOT baked in here -- edit.js loads them at
+  // runtime from data/tags.json, so the on-page "Edit" feature works
+  // without needing a full rebuild for every tag change.
 
   return `<!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>fotowiki/ ${escapeHtml(datei)}</title>
+<title>photo wiki / ${escapeHtml(file)}</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta property="og:title" content="fotowiki/ ${escapeHtml(datei)}">
-<meta property="og:image" content="${bildUrl}">
+<meta property="og:title" content="photo wiki / ${escapeHtml(file)}">
+<meta property="og:image" content="${imageUrl}">
 <meta property="og:type" content="article">
-<!-- Automatisch generiert von scripts/build-fotowiki.js. Nicht von Hand editieren --
-     Aenderungen an Tags/Querverweisen in wiki-fotos/data/tags.json vornehmen. -->
+<!-- Auto-generated by scripts/build-fotowiki.js. Do not edit by hand --
+     change tags/related images in wiki-fotos/data/tags.json (or use the
+     on-page Edit feature) instead. -->
 <style>
   * { box-sizing: border-box; }
   html, body { margin: 0; background: #0a0a0a; color: #d6d6d0; font-family: "IBM Plex Mono", "Courier New", monospace; font-size: 12px; }
-  header { padding: 1rem 1.2rem 0.8rem; border-bottom: 1px solid #2a2a26; color: #6b6b62; }
+  header { padding: 1rem 1.2rem 0.8rem; border-bottom: 1px solid #2a2a26; color: #6b6b62; display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 0.5rem; }
   header a { color: #9a9a8e; text-decoration: none; }
+  .back-btn { border: 1px solid #3a3a34; padding: 0.25rem 0.6rem; color: #9a9a8e !important; }
+  .back-btn:hover { border-color: #6ea36e; color: #6ea36e !important; }
   main { padding: 1.2rem; max-width: 720px; }
   .grossbild { background: #161614; margin-bottom: 1rem; text-align: center; }
   .grossbild img { max-width: 100%; max-height: 70vh; display: inline-block; }
+  .actions { display: flex; gap: 0.6rem; margin-bottom: 1.2rem; flex-wrap: wrap; align-items: center; }
+  .download-btn {
+    display: inline-block; background: #1e2e1e; color: #9a9a8e; border: 1px solid #3a3a34;
+    padding: 0.35rem 0.8rem; font-family: inherit; font-size: 10.5px; text-decoration: none;
+  }
+  .download-btn:hover { border-color: #6ea36e; color: #6ea36e; }
+  .license { font-size: 10px; color: #6b6b62; }
+  .license a { color: #6b6b62; text-decoration: underline; }
   table { border-collapse: collapse; width: 100%; font-size: 11.5px; margin-bottom: 1.2rem; }
   td { padding: 0.3rem 0.6rem; border-bottom: 1px solid #1e1e1a; color: #b8b8ac; }
   td:first-child { color: #6b6b62; width: 9rem; }
@@ -139,20 +156,27 @@ function renderSeite(eintrag, alleSlugs, tagsEintrag) {
   h2 { font-size: 11px; color: #6b6b62; text-transform: uppercase; letter-spacing: 0.06em; margin: 1.4rem 0 0.5rem; font-weight: normal; display: flex; justify-content: space-between; align-items: baseline; }
   .fw-edit-link { color: #6ea36e; text-transform: none; letter-spacing: normal; font-size: 10.5px; text-decoration: none; }
   .fw-edit-settings label, .fw-edit-form label { display: block; font-size: 10.5px; color: #9a9a8e; margin: 0.5rem 0 0.2rem; }
-  .fw-edit-settings input, .fw-edit-form input { background: #161614; border: 1px solid #3a3a34; color: #d6d6d0; padding: 0.3rem; font-family: inherit; font-size: 11px; }
+  .fw-edit-settings input, .fw-edit-form input { background: #161614; border: 1px solid #3a3a34; color: #d6d6d0; padding: 0.3rem; font-family: inherit; font-size: 11px; width: 100%; max-width: 400px; }
   .fw-edit-settings button, .fw-edit-form button { margin-top: 0.6rem; background: #1e2e1e; color: #9a9a8e; border: 1px solid #3a3a34; padding: 0.3rem 0.7rem; font-family: inherit; font-size: 10.5px; cursor: pointer; }
   .fw-edit-hinweis { font-size: 10.5px; color: #6b6b62; max-width: 44ch; }
   #fw-save-status, #fw-settings-status { font-size: 10.5px; color: #6ea36e; margin-left: 0.5rem; }
 </style>
 </head>
 <body>
-<header><a href="../../">hub</a> / <a href="../index.html">fotowiki</a> / ${escapeHtml(datei)}</header>
+<header>
+  <a href="../../" class="back-btn">← Back to home</a>
+  <div><a href="../index.html">photo wiki</a> / ${escapeHtml(file)}</div>
+</header>
 <main>
-  <div class="grossbild"><img src="${bildUrl}" alt="${escapeHtml(datei)}"></div>
-  <table>${tabelle}</table>
-  <div id="tags-bereich">lädt …</div>
+  <div class="grossbild"><img src="${imageUrl}" alt="${escapeHtml(file)}"></div>
+  <div class="actions">
+    <a class="download-btn" href="${imageUrl}" download="${escapeHtml(file)}">Download image</a>
+    <span class="license">Licensed under <a href="${LICENSE_URL}" target="_blank" rel="license noopener">${LICENSE_NAME}</a></span>
+  </div>
+  <table>${table}</table>
+  <div id="tags-bereich">loading …</div>
 </main>
-<script>window.FOTOWIKI_DATEI = ${JSON.stringify(datei)};</script>
+<script>window.FOTOWIKI_DATEI = ${JSON.stringify(file)};</script>
 <script src="../edit.js"></script>
 </body>
 </html>
@@ -160,62 +184,62 @@ function renderSeite(eintrag, alleSlugs, tagsEintrag) {
 }
 
 async function main() {
-  if (!fs.existsSync(BILDER_DIR)) {
-    console.error("Ordner nicht gefunden: " + BILDER_DIR);
+  if (!fs.existsSync(IMAGES_DIR)) {
+    console.error("Folder not found: " + IMAGES_DIR);
     process.exit(1);
   }
-  fs.mkdirSync(SEITEN_DIR, { recursive: true });
+  fs.mkdirSync(PAGES_DIR, { recursive: true });
   fs.mkdirSync(path.dirname(MANIFEST_PATH), { recursive: true });
 
-  const dateien = fs
-    .readdirSync(BILDER_DIR)
-    .filter((f) => ERLAUBTE_ENDUNGEN.includes(path.extname(f).toLowerCase()))
-    .sort((a, b) => a.localeCompare(b, "de"));
+  const files = fs
+    .readdirSync(IMAGES_DIR)
+    .filter((f) => ALLOWED_EXTENSIONS.includes(path.extname(f).toLowerCase()))
+    .sort((a, b) => a.localeCompare(b, "en"));
 
   let tags = {};
   if (fs.existsSync(TAGS_PATH)) {
     try { tags = JSON.parse(fs.readFileSync(TAGS_PATH, "utf8")); } catch (e) { tags = {}; }
   }
-  let neueTags = 0;
-  for (const datei of dateien) {
-    if (!(datei in tags)) {
-      tags[datei] = { tags: [], verwandt: [] };
-      neueTags++;
+  let newTagStubs = 0;
+  for (const file of files) {
+    if (!(file in tags)) {
+      tags[file] = { tags: [], verwandt: [] };
+      newTagStubs++;
     }
   }
   fs.writeFileSync(TAGS_PATH, JSON.stringify(tags, null, 2) + "\n");
 
-  const slugs = eindeutigeSlugs(dateien);
+  const slugs = uniqueSlugs(files);
 
-  const eintraege = [];
-  for (const datei of dateien) {
-    const exif = await leseExif(path.join(BILDER_DIR, datei));
-    eintraege.push({ datei, slug: slugs[datei], exif });
+  const entries = [];
+  for (const file of files) {
+    const exif = await readExif(path.join(IMAGES_DIR, file));
+    entries.push({ file, slug: slugs[file], exif });
   }
 
-  const manifest = eintraege.map((e) => ({
-    datei: e.datei,
+  const manifest = entries.map((e) => ({
+    file: e.file,
     slug: e.slug,
     ...e.exif,
   }));
   fs.writeFileSync(MANIFEST_PATH, JSON.stringify(manifest, null, 2) + "\n");
 
-  // Alte generierte Seiten entfernen, deren Bild nicht mehr existiert
-  const aktuelleSlugs = new Set(Object.values(slugs));
-  if (fs.existsSync(SEITEN_DIR)) {
-    for (const f of fs.readdirSync(SEITEN_DIR)) {
-      if (f.endsWith(".html") && !aktuelleSlugs.has(path.parse(f).name)) {
-        fs.unlinkSync(path.join(SEITEN_DIR, f));
+  // Remove generated pages whose image no longer exists.
+  const currentSlugs = new Set(Object.values(slugs));
+  if (fs.existsSync(PAGES_DIR)) {
+    for (const f of fs.readdirSync(PAGES_DIR)) {
+      if (f.endsWith(".html") && !currentSlugs.has(path.parse(f).name)) {
+        fs.unlinkSync(path.join(PAGES_DIR, f));
       }
     }
   }
 
-  for (const eintrag of eintraege) {
-    const html = renderSeite(eintrag, slugs, tags[eintrag.datei]);
-    fs.writeFileSync(path.join(SEITEN_DIR, eintrag.slug + ".html"), html);
+  for (const entry of entries) {
+    const html = renderPage(entry);
+    fs.writeFileSync(path.join(PAGES_DIR, entry.slug + ".html"), html);
   }
 
-  console.log(`${dateien.length} Bild(er) verarbeitet, ${neueTags} neue Tag-Stubs angelegt.`);
+  console.log(`${files.length} image(s) processed, ${newTagStubs} new tag stub(s) created.`);
 }
 
 main();
