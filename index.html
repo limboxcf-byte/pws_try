@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>—</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;1,9..144,400&family=IBM+Plex+Mono:wght@400;500&family=Source+Serif+Pro:ital,wght@0,500;1,500&display=swap" rel="stylesheet">
+<!--
+Concept: the hub itself doesn't get its own consistent look. Each card is
+styled like its destination -- typeface, colour, tone of the sub-page
+already shows through here. So the hub isn't a neutral menu, it's proof of
+the site's inconsistency in itself. No global navigation, no sitemap look.
+-->
+<style>
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    min-height: 100%;
+    background: #23231f;
+    color: #cfcabb;
+    font-family: "IBM Plex Mono", monospace;
+  }
+  .intro {
+    max-width: 620px;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 1rem;
+    font-size: 0.85rem;
+    line-height: 1.8;
+    color: #a29c88;
+  }
+  .intro a { color: #cfcabb; }
+  .brett {
+    max-width: 980px;
+    margin: 1.5rem auto 4rem;
+    padding: 0 1.5rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.1rem;
+  }
+  .karte {
+    text-decoration: none;
+    padding: 1.3rem 1.2rem;
+    display: block;
+    min-height: 130px;
+  }
+  .karte .titel { display: block; font-size: 1rem; margin-bottom: 0.5rem; }
+  .karte .txt { font-size: 0.78rem; line-height: 1.55; display: block; }
+
+  .k-fotowiki { background: #0a0a0a; color: #9a9a8e; font-family: "IBM Plex Mono", monospace; border: 1px solid #2a2a26; }
+  .k-fotowiki .titel { color: #d6d6d0; }
+  .k-fotowiki .txt { color: #6ea36e; }
+
+  .k-arbeiten { background: #f5f3ee; color: #444; font-family: "Source Serif Pro", Georgia, serif; }
+  .k-arbeiten .titel { color: #111; font-style: italic; font-size: 1.05rem; }
+
+  .k-notizen { background: #111; color: #a89f8a; font-family: "Fraunces", Georgia, serif; }
+  .k-notizen .titel { color: #f2ede0; font-size: 1.2rem; }
+
+  .k-library { background: #fff; color: #333; font-family: "Times New Roman", Times, serif; border: 1px solid #ccc; }
+  .k-library .titel { color: #0000EE; text-decoration: underline; }
+
+  .k-screenshots { background: #000; color: #666; font-family: "IBM Plex Mono", monospace; }
+  .k-screenshots .titel { color: #999; }
+
+  .k-ehrerbietungen { background: #171714; color: #948e7a; font-family: Georgia, serif; }
+  .k-ehrerbietungen .titel { color: #efeadb; font-size: 1.05rem; }
+
+  .k-blocks {
+    background: #6b4a30;
+    color: #e6d5bd;
+    font-family: "Helvetica Neue", Arial, sans-serif;
+  }
+  .k-blocks .titel { color: #f4efe1; font-weight: bold; }
+
+  .fussnotiz {
+    max-width: 620px;
+    margin: 0 auto;
+    padding: 0 1.5rem 4rem;
+    font-size: 0.78rem;
+    color: #6a6658;
+    line-height: 1.7;
+  }
+</style>
+</head>
+<body>
+  <div class="intro">
+    <p>[PLACEHOLDER -- intro text]. Not a portfolio, not an overview. Seven rooms, each run by its own logic. What looks like it belongs together at first glance usually doesn't.</p>
+  </div>
+
+  <div class="brett">
+    <a class="karte k-fotowiki" href="wiki-fotos/">
+      <span class="titel">photo wiki/</span>
+      <span class="txt">camera roll · EXIF · geodata on a map</span>
+    </a>
+    <a class="karte k-arbeiten" href="wiki-arbeiten/">
+      <span class="titel">Works Register</span>
+      <span class="txt">Works, projects, shows -- an ongoing register</span>
+    </a>
+    <a class="karte k-notizen" href="notizen/">
+      <span class="titel">Poems, Notes</span>
+      <span class="txt">Texts, kept irregularly</span>
+    </a>
+    <a class="karte k-library" href="library/">
+      <span class="titel">Bookmarks</span>
+      <span class="txt">Links, articles, PDFs, file dumps -- unsorted</span>
+    </a>
+    <a class="karte k-screenshots" href="screenshots/">
+      <span class="titel">Screenshots</span>
+      <span class="txt">Collection, full-screen, → browse</span>
+    </a>
+    <a class="karte k-ehrerbietungen" href="ehrerbietungen/">
+      <span class="titel">Tributes</span>
+      <span class="txt">Dedications</span>
+    </a>
+    <a class="karte k-blocks" href="blocks/">
+      <span class="titel">Blocks</span>
+      <span class="txt">Info packets, associative</span>
+    </a>
+  </div>
+
+  <div class="fussnotiz">
+    [PLACEHOLDER] This site is under construction. Some sections link to each other, some don't.
+  </div>
+</body>
+</html>
