@@ -59,7 +59,7 @@ async function init() {
   const markerByFile = {};
   geotagged.forEach((e) => {
     const m = L.circleMarker([e.lat, e.lon], {
-      radius: 7, color: '#6ea36e', weight: 1, fillColor: '#6ea36e', fillOpacity: 0.5
+            radius: 7, color: '#ff3b30', weight: 1, fillColor: '#ff3b30', fillOpacity: 0.55
     }).addTo(map);
     const thumbUrl = 'bilder/' + encodeURIComponent(e.file);
     m.bindPopup(
