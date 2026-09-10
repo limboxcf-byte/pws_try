@@ -1,1 +1,54 @@
-[]
+[
+  {
+    "file": "i_7_1.jpg",
+    "slug": "i-7-1",
+    "date": null,
+    "camera": null,
+    "lens": null,
+    "focalLength": null,
+    "aperture": null,
+    "iso": null,
+    "shutter": null,
+    "lat": null,
+    "lon": null
+  },
+  {
+    "file": "IMG_3337 2.JPG",
+    "slug": "img-3337-2",
+    "date": "2026-08-29T15:24:41.000Z",
+    "camera": "Apple iPhone 13 mini",
+    "lens": "iPhone 13 mini back dual wide camera 5.1mm f/1.6",
+    "focalLength": "5.1 mm",
+    "aperture": "f/1.6",
+    "iso": 160,
+    "shutter": "1/50s",
+    "lat": 51.23246944444445,
+    "lon": 6.814619444444444
+  },
+  {
+    "file": "IMG_3492.JPG",
+    "slug": "img-3492",
+    "date": "2024-01-15T01:14:51.000Z",
+    "camera": "Apple iPhone 13 mini",
+    "lens": "iPhone 13 mini back dual wide camera 5.1mm f/1.6",
+    "focalLength": "5.1 mm",
+    "aperture": "f/1.6",
+    "iso": 500,
+    "shutter": "1/50s",
+    "lat": 51.22946944444445,
+    "lon": 6.811877777777777
+  },
+  {
+    "file": "storage museum.jpeg",
+    "slug": "storage-museum",
+    "date": null,
+    "camera": null,
+    "lens": null,
+    "focalLength": null,
+    "aperture": null,
+    "iso": null,
+    "shutter": null,
+    "lat": null,
+    "lon": null
+  }
+]
