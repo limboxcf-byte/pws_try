@@ -61,6 +61,9 @@ the site's inconsistency in itself. No global navigation, no sitemap look.
 
   .k-screenshots { background: #000; color: #666; font-family: "IBM Plex Mono", monospace; }
   .k-screenshots .titel { color: #999; }
+  .k-screenshots a { position:relative; }
+  .k-screenshots a span { position:absolute; display:none; z-index:99; }
+  .k-screenshots a:hover span { display:block; }
 
   .k-ehrerbietungen { background: #171714; color: #948e7a; font-family: Georgia, serif; }
   .k-ehrerbietungen .titel { color: #efeadb; font-size: 1.05rem; }
@@ -80,11 +83,12 @@ the site's inconsistency in itself. No global navigation, no sitemap look.
     color: #6a6658;
     line-height: 1.7;
   }
+ 
 </style>
 </head>
 <body>
   <div class="intro">
-    <p>[PLACEHOLDER -- intro text]. Not a portfolio, not an overview. Seven rooms, each run by its own logic. What looks like it belongs together at first glance usually doesn't.</p>
+    <p>[PLACEHOLDER -- intro text]. Welcome!</p>
   </div>
 
   <div class="brett">
@@ -104,8 +108,10 @@ the site's inconsistency in itself. No global navigation, no sitemap look.
       <span class="titel">Bookmarks</span>
       <span class="txt">Links, articles, PDFs, file dumps -- unsorted</span>
     </a>
-    <a class="karte k-screenshots" href="screenshots/">
-      <span class="titel">Screenshots</span>
+   
+     
+    <a class="karte k-screenshots" href="screenshots/"><img src="screenshots/screenhover/IMG_3496.jpg" alt="Screens" height="100" />
+      <span class="titel">Screens</span>
       <span class="txt">Collection, full-screen, → browse</span>
     </a>
     <a class="karte k-ehrerbietungen" href="ehrerbietungen/">
