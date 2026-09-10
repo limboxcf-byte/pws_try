@@ -35,6 +35,11 @@ right, nothing else visible.
     color: #777; font-family: "IBM Plex Mono", monospace; font-size: 0.75rem;
     z-index: 10; letter-spacing: 0.05em;
   }
+ #datum {
+  position: absolute; top: 1rem; right: 1.2rem;
+  color: #777; font-family: "IBM Plex Mono", monospace; font-size: 0.72rem;
+  z-index: 10; letter-spacing: 0.05em;
+}
   #hinweis {
     position: absolute; bottom: 1rem; left: 1.2rem;
     color: #444; font-family: "IBM Plex Mono", monospace; font-size: 0.7rem;
@@ -58,6 +63,7 @@ right, nothing else visible.
 <a href="../" id="zurueck">← Back to home</a>
 <div id="buehne">
   <div id="zaehler" style="display:none">01 / 01</div>
+  <div id="datum" style="display:none"></div>
   <div id="hinweis" style="display:none">← → to browse</div>
 </div>
 
@@ -107,14 +113,25 @@ async function init() {
   let index = 0;
   const zaehler = document.getElementById('zaehler');
   const hinweis = document.getElementById('hinweis');
+  const datum = document.getElementById('datum');
   zaehler.style.display = 'block';
   hinweis.style.display = 'block';
+
+    function parseDatum(dateiname) {
+    const m = dateiname.match(/Screenshot (\d{4})-(\d{2})-(\d{2}) at (\d{2})\.(\d{2})\.(\d{2})/);
+    if (!m) return null;
+    const [, y, mo, d, h, mi, s] = m;
+    return `${y}-${mo}-${d} · ${h}:${mi}:${s}`;
+  }
 
   function show(i) {
     bilder[index].classList.remove('aktiv');
     index = (i + bilder.length) % bilder.length;
     bilder[index].classList.add('aktiv');
     zaehler.textContent = String(index + 1).padStart(2, '0') + ' / ' + String(bilder.length).padStart(2, '0');
+    const gefunden = parseDatum(files[index]);
+    datum.textContent = gefunden || '';
+    datum.style.display = gefunden ? 'block' : 'none';
   }
   show(0);
 
